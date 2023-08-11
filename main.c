@@ -71,9 +71,77 @@ int findMaxMacchina(Macchina* root) {
     return root->autonomia;
 }
 
-// Funzione per cancellare un nodo macchina nel BST
-Macchina* deleteNodeMacchina(Macchina* root, int value) {
+//Funzione per cercare il padre una macchina con una certa autonomia
+Macchina* cercaPadreMacchina(Macchina* root,int auton){
+    Macchina* curr = root;
+    Macchina *padre = NULL;
+    while (curr->autonomia != auton && curr != NULL){
+        padre = curr;
+        if (auton < curr->autonomia){
+            curr = curr->left;
+        }else{
+            curr = curr->right;
+        }
+    }
+    return padre;
+}
 
+// Funzione per cancellare un nodo macchina nel BST
+Macchina* deleteNodeMacchina(Macchina** root, int value) {
+    //creco il padre del nodo da cancellare
+    Macchina* padre = cercaPadreMacchina(*root, value);
+    Macchina* nodo = NULL;
+    //se il padre é NULL vuol dire che il nodo è la radice
+    if(padre == NULL){
+        nodo = *root;
+    }else{
+        // se il padre ha almeno un figlio vuol dire che il nodo cercato esiste
+        if (padre->right!=NULL || padre->left!=NULL){
+            if (value<padre->autonomia){
+                nodo = padre->left;
+            }else{
+                nodo = padre->right;
+            }
+        }
+        //altrimenti non è stato trovato
+        else{
+            return *root;
+        }
+    }
+    //se ci sono più macchine con la stesso autonomia riduco la quantità
+    if(nodo->quantita>1){
+        nodo->quantita-=1;
+        return *root;
+    }
+    //se c'è una macchina sola devo togliere il nodo
+    else{
+        Macchina *puntatore;
+        //se il nodo ha al massimo 1 figlio
+        if(nodo->right==NULL || nodo->left==NULL){
+            if(nodo->right==NULL){
+                puntatore=nodo->left;
+            }else{
+                puntatore=nodo->right;
+            }
+            //se il padre c'è lo aggiorno
+            if(padre!=NULL){
+                if(value<padre->autonomia){
+                    padre->left=puntatore;
+                }else{
+                    padre->right=puntatore;
+                }
+            }
+            //se il padre non c'è aggiotno la root
+            else{
+                *root = padre;
+            }
+            free(nodo);
+        }
+        //altrimenti ha 2 alberi e devo gestirli
+        else{
+
+        }
+    }
 }
 
 
