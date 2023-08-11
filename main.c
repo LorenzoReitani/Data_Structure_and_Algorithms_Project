@@ -140,6 +140,7 @@ Macchina* deleteNodeMacchina(Macchina** root, int value) {
         //altrimenti ha 2 alberi e devo gestirli
         else{
 
+
         }
     }
 }
