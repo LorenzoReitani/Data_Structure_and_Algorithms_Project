@@ -96,6 +96,7 @@ Macchina* successreMacchina(Macchina* root, int value){
     return curr;
 }
 
+
 // Funzione per cancellare un nodo macchina nel BST
 Macchina* deleteNodeMacchina(Macchina** root, int value) {
     //creco il padre del nodo da cancellare
