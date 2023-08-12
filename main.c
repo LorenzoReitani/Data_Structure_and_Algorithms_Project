@@ -53,6 +53,7 @@ Macchina* InsertNodeMacchina(Macchina** root, int value) {
             corr = corr->right;
         }else{
             corr->quantita += 1;
+            printf("aggiunta\n");
             return *root;
         }
     }
@@ -64,6 +65,7 @@ Macchina* InsertNodeMacchina(Macchina** root, int value) {
     }else{
         prec->right = nodoNuovo;
     }
+    printf("aggiunta\n");
     return *root;
 }
 
@@ -189,8 +191,12 @@ Stazione* InsertStazione(Stazione** testa, int value){
             prec = corr;
             corr = corr->next;
         }
-        if(prec==NULL){
+        if (corr->kilometro == value){
+            printf("non aggiunta\n");
+            return *testa;
+        }else if(prec==NULL){
             //la stazione è la prima e diventa la testa
+            newStazione->next=*testa;
             *testa = newStazione;
         }
         else{
@@ -198,6 +204,7 @@ Stazione* InsertStazione(Stazione** testa, int value){
             newStazione->next = corr;
         }
     }
+    printf("aggiunta\n");
     return *testa;
 }
 
