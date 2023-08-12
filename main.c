@@ -121,12 +121,14 @@ Macchina* DeleteNodeMacchina(Macchina** root, int value) {
         }
         //altrimenti non è stato trovato
         else{
+            printf("non rottamata\n");
             return *root;
         }
     }
     //se ci sono più macchine con la stesso autonomia riduco la quantità
     if(nodo->quantita>1){
         nodo->quantita-=1;
+        printf("/rottamata");
         return *root;
     }
     //se c'è una macchina sola devo togliere il nodo
@@ -147,11 +149,12 @@ Macchina* DeleteNodeMacchina(Macchina** root, int value) {
                     padre->right=puntatore;
                 }
             }
-            //se il padre non c'è aggiotno la root
+            //se il padre non c'è aggiorno la root
             else{
                 *root = padre;
             }
             free(nodo);
+            printf("/rottamata");
         }
         //altrimenti ha 2 alberi e devo gestirli
         else{
@@ -162,6 +165,16 @@ Macchina* DeleteNodeMacchina(Macchina** root, int value) {
             }
     }
     return *root;
+}
+
+// Funzione per eliminaare un albero intero
+Macchina* DeleteTreeMacchina(Macchina* root){
+    if(root->right!=NULL)
+        DeleteTreeMacchina(root->right);
+    if(root->left!=NULL)
+        DeleteTreeMacchina(root->left);
+    free(root);
+    return NULL;
 }
 
 
@@ -210,7 +223,24 @@ Stazione* InsertStazione(Stazione** testa, int value){
 
 //Funzione per distruggere una stazione
 Stazione* DeleteStazione(Stazione** testa, int value) {
-
+    Stazione* corr= *testa;
+    Stazione * prec=NULL;
+    while(corr!=NULL && corr->kilometro!=value){
+        prec==corr;
+        corr=corr->next;
+    }
+    if(corr!= NULL){
+        if(prec==NULL){
+            *testa=corr->next;
+        }else{
+            prec->next=corr->next;
+        }
+        DeleteTreeMacchina(corr->rootMacchine);
+        free(corr);
+        printf("demolita\n");
+    }else
+        printf("non demolita\n");
+    return *testa;
 }
 
 int main() {
