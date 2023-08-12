@@ -42,9 +42,9 @@ Macchina* CreateNodeMacchina(int autonomia) {
 }
 
 //funzione per aggiungere una macchina all'albero
-Macchina* InsertNodeMacchina(Macchina* root, int value) {
+Macchina* InsertNodeMacchina(Macchina** root, int value) {
     Macchina* prec = NULL;
-    Macchina* corr = root;
+    Macchina* corr = *root;
     while (corr != NULL){
         prec = corr;
         if(value<corr->autonomia){
@@ -53,18 +53,18 @@ Macchina* InsertNodeMacchina(Macchina* root, int value) {
             corr = corr->right;
         }else{
             corr->quantita += 1;
-            return root;
+            return *root;
         }
     }
     Macchina* nodoNuovo= CreateNodeMacchina(value);
     if( prec == NULL) {
-        root = nodoNuovo;
+        *root = nodoNuovo;
     }else if(value < prec->autonomia){
         prec->left = nodoNuovo;
     }else{
         prec->right = nodoNuovo;
     }
-    return root;
+    return *root;
 }
 
 // Funzione per trovare il valore massimo nel BST di macchine
@@ -199,6 +199,11 @@ Stazione* InsertStazione(Stazione** testa, int value){
         }
     }
     return *testa;
+}
+
+//Funzione per distruggere una stazione
+Stazione* DeleteStazione(Stazione** testa, int value) {
+
 }
 
 int main() {
