@@ -86,6 +86,16 @@ Macchina* cercaPadreMacchina(Macchina* root,int auton){
     return padre;
 }
 
+// Funzione per trovare il successore di una macchina
+Macchina* successreMacchina(Macchina* root, int value){
+    Macchina* curr = root;
+    curr = curr->right;
+    while (curr->left != NULL){
+        curr = curr->left;
+    }
+    return curr;
+}
+
 // Funzione per cancellare un nodo macchina nel BST
 Macchina* deleteNodeMacchina(Macchina** root, int value) {
     //creco il padre del nodo da cancellare
@@ -139,7 +149,6 @@ Macchina* deleteNodeMacchina(Macchina** root, int value) {
         }
         //altrimenti ha 2 alberi e devo gestirli
         else{
-
 
         }
     }
