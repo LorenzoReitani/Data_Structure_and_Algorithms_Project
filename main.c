@@ -87,7 +87,7 @@ Macchina* cercaPadreMacchina(Macchina* root,int auton){
 }
 
 // Funzione per trovare il successore di una macchina
-Macchina* successreMacchina(Macchina* root, int value){
+Macchina* successoreMacchina(Macchina* root){
     Macchina* curr = root;
     curr = curr->right;
     while (curr->left != NULL){
@@ -150,9 +150,13 @@ Macchina* deleteNodeMacchina(Macchina** root, int value) {
         }
         //altrimenti ha 2 alberi e devo gestirli
         else{
-
-        }
+            Macchina* successore = successoreMacchina(nodo);
+            int val= successore->autonomia;
+            deleteNodeMacchina(root, val);
+            nodo->autonomia = val;
+            }
     }
+    return *root;
 }
 
 
