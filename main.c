@@ -17,10 +17,12 @@ struct NodeMacchina {
 typedef struct NodeMacchina Macchina;
 
 //dichiaro la struttura della stazione
-typedef struct {
+struct Stazione{
     int kilometro;
     Macchina * rootMacchine;
-}Stazione ;
+    struct Stazione* next;
+};
+typedef struct Stazione Stazione;
 
 
 /*#################################################################
@@ -28,8 +30,10 @@ typedef struct {
  #################################################################*/
 
 
+//################ funzioni per le macchine #################
+
 //funzione per creare un nuovo nodo maccchina
-Macchina* createNodeMacchina(int autonomia) {
+Macchina* CreateNodeMacchina(int autonomia) {
     Macchina* newNodeMacchina = (Macchina*)malloc(sizeof(Macchina));
     newNodeMacchina->autonomia = autonomia;
     newNodeMacchina->left = NULL;
@@ -38,7 +42,7 @@ Macchina* createNodeMacchina(int autonomia) {
 }
 
 //funzione per aggiungere una macchina all'albero
-Macchina* insertNodeMacchina(Macchina* root, int value) {
+Macchina* InsertNodeMacchina(Macchina* root, int value) {
     Macchina* prec = NULL;
     Macchina* corr = root;
     while (corr != NULL){
@@ -52,7 +56,7 @@ Macchina* insertNodeMacchina(Macchina* root, int value) {
             return root;
         }
     }
-    Macchina* nodoNuovo= createNodeMacchina(value);
+    Macchina* nodoNuovo= CreateNodeMacchina(value);
     if( prec == NULL) {
         root = nodoNuovo;
     }else if(value < prec->autonomia){
@@ -64,7 +68,7 @@ Macchina* insertNodeMacchina(Macchina* root, int value) {
 }
 
 // Funzione per trovare il valore massimo nel BST di macchine
-int findMaxMacchina(Macchina* root) {
+int FindMaxMacchina(Macchina* root) {
     while (root->right != NULL) {
         root = root->right;
     }
@@ -72,7 +76,7 @@ int findMaxMacchina(Macchina* root) {
 }
 
 //Funzione per cercare il padre una macchina con una certa autonomia
-Macchina* cercaPadreMacchina(Macchina* root,int auton){
+Macchina* CercaPadreMacchina(Macchina* root,int auton){
     Macchina* curr = root;
     Macchina *padre = NULL;
     while (curr->autonomia != auton && curr != NULL){
@@ -87,7 +91,7 @@ Macchina* cercaPadreMacchina(Macchina* root,int auton){
 }
 
 // Funzione per trovare il successore di una macchina
-Macchina* successoreMacchina(Macchina* root){
+Macchina* SuccessoreMacchina(Macchina* root){
     Macchina* curr = root;
     curr = curr->right;
     while (curr->left != NULL){
@@ -96,11 +100,10 @@ Macchina* successoreMacchina(Macchina* root){
     return curr;
 }
 
-
 // Funzione per cancellare un nodo macchina nel BST
-Macchina* deleteNodeMacchina(Macchina** root, int value) {
+Macchina* DeleteNodeMacchina(Macchina** root, int value) {
     //creco il padre del nodo da cancellare
-    Macchina* padre = cercaPadreMacchina(*root, value);
+    Macchina* padre = CercaPadreMacchina(*root, value);
     Macchina* nodo = NULL;
     //se il padre é NULL vuol dire che il nodo è la radice
     if(padre == NULL){
@@ -150,15 +153,53 @@ Macchina* deleteNodeMacchina(Macchina** root, int value) {
         }
         //altrimenti ha 2 alberi e devo gestirli
         else{
-            Macchina* successore = successoreMacchina(nodo);
+            Macchina* successore = SuccessoreMacchina(nodo);
             int val= successore->autonomia;
-            deleteNodeMacchina(root, val);
+            DeleteNodeMacchina(root, val);
             nodo->autonomia = val;
             }
     }
     return *root;
 }
 
+
+//####################### funziomi per le stazioni ######################
+
+//Funzione per creare una nuova stazione
+Stazione* CreateStazione (int value){
+    Stazione * newStazione = (Stazione *)malloc(sizeof(Stazione));
+    newStazione->kilometro = value;
+    newStazione->next = NULL;
+    newStazione->rootMacchine = NULL;
+    return newStazione;
+}
+
+//Funzione per inserire una nuova stazione
+Stazione* InsertStazione(Stazione** testa, int value){
+    Stazione* newStazione = CreateStazione(value);
+    //se la testa è nulla la stazione diventa la testa
+    if(*testa==NULL){
+        *testa=newStazione;
+    }
+    else{
+        //cerco dove posizionarla
+        Stazione* corr = *testa;
+        Stazione * prec = NULL;
+        while(corr != NULL && corr->kilometro<value){
+            prec = corr;
+            corr = corr->next;
+        }
+        if(prec==NULL){
+            //la stazione è la prima e diventa la testa
+            *testa = newStazione;
+        }
+        else{
+            prec->next = newStazione;
+            newStazione->next = corr;
+        }
+    }
+    return *testa;
+}
 
 int main() {
     printf("Hello, World!\n");
