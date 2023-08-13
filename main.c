@@ -81,7 +81,7 @@ int FindMaxMacchina(Macchina* root) {
 Macchina* CercaPadreMacchina(Macchina* root,int auton){
     Macchina* curr = root;
     Macchina *padre = NULL;
-    while (curr->autonomia != auton && curr != NULL){
+    while (curr != NULL && curr->autonomia != auton){
         padre = curr;
         if (auton < curr->autonomia){
             curr = curr->left;
@@ -128,7 +128,7 @@ Macchina* DeleteNodeMacchina(Macchina** root, int value) {
     //se ci sono più macchine con la stesso autonomia riduco la quantità
     if(nodo->quantita>1){
         nodo->quantita-=1;
-        printf("/rottamata");
+        printf("rottamata");
         return *root;
     }
     //se c'è una macchina sola devo togliere il nodo
@@ -154,7 +154,7 @@ Macchina* DeleteNodeMacchina(Macchina** root, int value) {
                 *root = padre;
             }
             free(nodo);
-            printf("/rottamata");
+            printf("rottamata");
         }
         //altrimenti ha 2 alberi e devo gestirli
         else{
@@ -204,9 +204,10 @@ Stazione* InsertStazione(Stazione** testa, int value){
             prec = corr;
             corr = corr->next;
         }
-        if (corr->kilometro == value){
+        if (corr!= NULL && corr->kilometro == value){
             printf("non aggiunta\n");
-            return *testa;
+            free(newStazione);
+            return NULL;
         }else if(prec==NULL){
             //la stazione è la prima e diventa la testa
             newStazione->next=*testa;
@@ -218,7 +219,7 @@ Stazione* InsertStazione(Stazione** testa, int value){
         }
     }
     printf("aggiunta\n");
-    return *testa;
+    return newStazione;
 }
 
 //Funzione per distruggere una stazione
@@ -226,7 +227,7 @@ Stazione* DeleteStazione(Stazione** testa, int value) {
     Stazione* corr= *testa;
     Stazione * prec=NULL;
     while(corr!=NULL && corr->kilometro!=value){
-        prec==corr;
+        prec=corr;
         corr=corr->next;
     }
     if(corr!= NULL){
@@ -243,9 +244,64 @@ Stazione* DeleteStazione(Stazione** testa, int value) {
     return *testa;
 }
 
+
+//##################### funzioni per cercare il percorso migliore ############################
+
+//funzione per cercre il percorso al dritto
+Stazione* CercaPercorso(Stazione* autostrada, int partenza, int arrivo, char* risultato){
+    Stazione* stazione = autostrada;
+    int autonomia = FindMaxMacchina(stazione->rootMacchine);
+    int distanza = arrivo-partenza;
+    if(distanza<autonomia){
+        //ho trovato la stazione per arrivare
+
+    }else{
+        Stazione * corr = stazione;
+        while(corr!=NULL){
+            if(distanza)
+        }
+    }
+}
+
 int main() {
-    printf("Hello, World!\n");
-    return 0;
+    Stazione* autostrada = NULL;
+    Stazione* stazione = InsertStazione(&autostrada, 30);
+    InsertNodeMacchina(&stazione->rootMacchine, 40);
+    stazione = InsertStazione(&autostrada, 20);
+    printf("20 = %i\n", stazione->kilometro);
+    printf("20 = %i\n", autostrada->kilometro);
+    InsertNodeMacchina(&stazione->rootMacchine, 10);
+    InsertNodeMacchina(&stazione->rootMacchine, 15);
+    InsertNodeMacchina(&stazione->rootMacchine, 5);
+    InsertNodeMacchina(&stazione->rootMacchine, 25);
+    int max = FindMaxMacchina(stazione->rootMacchine);
+    printf("25 é %i\n", max);
+    stazione = InsertStazione(&autostrada, 50);
+    InsertNodeMacchina(&stazione->rootMacchine, 20);
+    InsertNodeMacchina(&stazione->rootMacchine, 25);
+    stazione = InsertStazione(&autostrada, 45);
+    InsertNodeMacchina(&stazione->rootMacchine, 30);
+    printf("45 = %i\n", stazione->kilometro);
+
+    stazione=autostrada;
+    while(stazione!=NULL){
+        printf("%i(%i) -> ", stazione->kilometro, FindMaxMacchina(stazione->rootMacchine));
+        stazione=stazione->next;
+    }
+
+    DeleteStazione(&autostrada,45);
+
+    stazione=autostrada;
+    while(stazione!=NULL){
+        printf("%i(%i) -> ", stazione->kilometro, FindMaxMacchina(stazione->rootMacchine));
+        stazione=stazione->next;
+    }
+    printf("\nfatto\n");
+
+    DeleteNodeMacchina(&autostrada->next->next->rootMacchine, 250);
+    max = FindMaxMacchina(autostrada->next->next->rootMacchine);
+    printf("25 = %i\n", max);
+
 }
 
 
