@@ -22,6 +22,7 @@ typedef struct NodeMacchina Macchina;
 struct Stazione{
     int kilometro;
     Macchina * rootMacchine;
+    struct Stazione* precedente;
     struct Stazione* next;
 };
 typedef struct Stazione Stazione;
@@ -194,6 +195,7 @@ Macchina* DeleteTreeMacchina(Macchina* root){
 Stazione* CreateStazione (int value){
     Stazione * newStazione = (Stazione *)malloc(sizeof(Stazione));
     newStazione->kilometro = value;
+    newStazione->precedente=NULL;
     newStazione->next = NULL;
     newStazione->rootMacchine = NULL;
     return newStazione;
@@ -215,6 +217,7 @@ Stazione* InsertStazione(Stazione** testa, int value){
             corr = corr->next;
         }
         if (corr!= NULL && corr->kilometro == value){
+            //la stazione già esiste, non aggiungo nulla
             printf("non aggiunta\n");
             free(newStazione);
             return NULL;
@@ -224,8 +227,11 @@ Stazione* InsertStazione(Stazione** testa, int value){
             *testa = newStazione;
         }
         else{
+            //aggiungo la stazione nella lista
             prec->next = newStazione;
+            newStazione->precedente=prec;
             newStazione->next = corr;
+            corr->precedente=newStazione;
         }
     }
     printf("aggiunta\n");
@@ -242,14 +248,18 @@ Stazione* DeleteStazione(Stazione** testa, int value) {
     }
     if(corr!= NULL){
         if(prec==NULL){
+            //devo eliminare la testa
             *testa=corr->next;
+            (corr->next)->precedente = NULL;
         }else{
             prec->next=corr->next;
+            (corr->next)->precedente = prec;
         }
         DeleteTreeMacchina(corr->rootMacchine);
         free(corr);
         printf("demolita\n");
     }else
+        //stazione non trovata
         printf("non demolita\n");
     return *testa;
 }
