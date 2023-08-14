@@ -231,7 +231,9 @@ Stazione* InsertStazione(Stazione** testa, int value){
             prec->next = newStazione;
             newStazione->precedente=prec;
             newStazione->next = corr;
-            corr->precedente=newStazione;
+            if(corr!=NULL) {
+                corr->precedente = newStazione;
+            }
         }
     }
     printf("aggiunta\n");
