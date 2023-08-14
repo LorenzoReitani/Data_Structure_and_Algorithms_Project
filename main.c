@@ -264,6 +264,15 @@ Stazione* DeleteStazione(Stazione** testa, int value) {
     return *testa;
 }
 
+//####################### funziomi per le tappe ######################
+Tappa* CreateTappa(int value){
+    Tappa* newTappa = (Tappa*)malloc(sizeof (Tappa));
+    newTappa->precedente=NULL;
+    newTappa->kilometro=value;
+    newTappa->arrivi=NULL;
+    return newTappa;
+}
+
 
 //##################### funzioni per cercare il percorso migliore ############################
 
