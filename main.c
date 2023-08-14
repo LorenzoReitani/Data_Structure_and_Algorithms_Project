@@ -26,6 +26,14 @@ struct Stazione{
 };
 typedef struct Stazione Stazione;
 
+//dichiaro la struttura nodo della tappa per ricercare il percorso
+struct NodeTappa{
+    int kilometro;
+    struct NodeTappa* precedente;
+    struct NodeTappa** arrivi;
+};
+typedef struct NodeTappa Tappa;
+
 
 /*#################################################################
  * dichiaro le funzioni
