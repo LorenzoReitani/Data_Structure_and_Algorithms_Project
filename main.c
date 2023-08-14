@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+
 
 
 /*######################################################################
@@ -247,21 +249,43 @@ Stazione* DeleteStazione(Stazione** testa, int value) {
 
 //##################### funzioni per cercare il percorso migliore ############################
 
-//funzione per cercre il percorso al dritto
-Stazione* CercaPercorso(Stazione* autostrada, int partenza, int arrivo, char* risultato){
-    Stazione* stazione = autostrada;
-    int autonomia = FindMaxMacchina(stazione->rootMacchine);
-    int distanza = arrivo-partenza;
-    if(distanza<autonomia){
-        //ho trovato la stazione per arrivare
-
+//funzione che trova gli arrivi partendo da una posizione
+Stazione* CercaArrivi(Stazione* partenza, int arrivo, Stazione* raggiunta){
+    int distanza = arrivo-partenza->kilometro;
+    int autonomia =  FindMaxMacchina(partenza->rootMacchine);
+    if(distanza< autonomia){
+        return NULL;
     }else{
-        Stazione * corr = stazione;
-        while(corr!=NULL){
-            if(distanza)
+        Stazione * corr = raggiunta->next;
+        //array di puntatori
+        while(corr->kilometro - partenza->kilometro < autonomia){
+            //aggiungo il corrente alla lista di puntatori
+            corr = corr->next;
+        }
+    }
+
+}
+
+//funzione che calcola il percorso
+char* CalcolaPercorso(Stazione* autostrada, int arrivo){
+    bool trovato = false;
+    Stazione* corr = autostrada;
+    Stazione* raggiunta = autostrada;
+    while(!trovato){
+        Stazione* raggiunte;
+        Stazione* risultato = CercaArrivi(corr, arrivo, raggiunta);
+        if(risultato==NULL){
+            trovato=true;
+        }else{
+
         }
     }
 }
+
+
+/*########################################################################
+ * main del programma
+ ########################################################################*/
 
 int main() {
     Stazione* autostrada = NULL;
