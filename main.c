@@ -29,7 +29,7 @@ typedef struct Stazione Stazione;
 
 //dichiaro la struttura nodo della tappa per ricercare il percorso
 struct NodeTappa{
-    int kilometro;
+    Stazione * stazione;
     struct NodeTappa* precedente;
     struct NodeTappa** arrivi;
 };
@@ -267,10 +267,10 @@ Stazione* DeleteStazione(Stazione** testa, int value) {
 }
 
 //####################### funziomi per le tappe ######################
-Tappa* CreateTappa(int value){
+Tappa* CreateTappa(Stazione* staz){
     Tappa* newTappa = (Tappa*)malloc(sizeof (Tappa));
     newTappa->precedente=NULL;
-    newTappa->kilometro=value;
+    newTappa->stazione=staz;
     newTappa->arrivi=NULL;
     return newTappa;
 }
@@ -279,36 +279,86 @@ Tappa* CreateTappa(int value){
 //##################### funzioni per cercare il percorso migliore ############################
 
 //funzione che trova gli arrivi partendo da una posizione
-Stazione* CercaArrivi(Stazione* partenza, int arrivo, Stazione* raggiunta){
-    int distanza = arrivo-partenza->kilometro;
-    int autonomia =  FindMaxMacchina(partenza->rootMacchine);
+Tappa** CercaArrivi(Tappa* partenza, int arrivo, Stazione* raggiunta, bool* trovato, int* size){
+    int distanza = arrivo-partenza->stazione->kilometro;
+    int autonomia =  FindMaxMacchina(partenza->stazione->rootMacchine);
+    Tappa** arrivi = NULL;
+    int lunghezzaArrivi = 0;
     if(distanza< autonomia){
-        return NULL;
+        //se la distanza dall'arrivo è minore dell'autonomia ho trovato il percorso migliore
+        *trovato=true;
+        return arrivi;
     }else{
+        //altrimenti mi salvo le tappe dove sono arrivato;
         Stazione * corr = raggiunta->next;
-        //array di puntatori
-        while(corr->kilometro - partenza->kilometro < autonomia){
-            //aggiungo il corrente alla lista di puntatori
+        while(corr->kilometro - partenza->stazione->kilometro < autonomia){
+            lunghezzaArrivi++;
+            Tappa* newTappa = CreateTappa(corr);
+            newTappa->precedente=partenza;
+            arrivi=(Tappa**) realloc(arrivi, lunghezzaArrivi* sizeof(Tappa*));
+            arrivi[lunghezzaArrivi-1]=newTappa;
             corr = corr->next;
         }
+        *size=lunghezzaArrivi;
+        return arrivi;
     }
+}
 
+//funzione per scrivere il percorso
+char* ScriviPercorso(Tappa* fine,int arrivo ,int profondità){
+    int* tappe = (int*)malloc((profondità-1) * sizeof(int));
+    Tappa* corr = fine;
+    for(int i = profondità-2; i>=0 ; i--){
+        tappe[i]=corr->stazione->kilometro;
+        corr=corr->precedente;
+    }
+    char* risultato = (char*)malloc(6*sizeof (char));
+    //scrivo il ciclo per scrivere il risultato fino alla penultima tappa
+
+    //aggiungo al risultato la tappa finale senza le frecce
 }
 
 //funzione che calcola il percorso
-char* CalcolaPercorso(Stazione* autostrada, int arrivo){
+char* CalcolaPercorso(Stazione* autostrada, int start, int end){
     bool trovato = false;
-    Stazione* corr = autostrada;
-    Stazione* raggiunta = autostrada;
-    while(!trovato){
-        Stazione* raggiunte;
-        Stazione* risultato = CercaArrivi(corr, arrivo, raggiunta);
-        if(risultato==NULL){
-            trovato=true;
-        }else{
-
-        }
+    Stazione* partenza = autostrada;
+    while(partenza->kilometro!=start){
+        partenza=partenza->next;
     }
+    Tappa* rootTappa = CreateTappa(partenza);
+    Tappa** arrivi =(Tappa**) malloc(sizeof (Tappa*));
+    Tappa* conclusione=NULL;
+    arrivi[0]=rootTappa;
+    int lunghezzaArrivi = 1;
+    Stazione* raggiunta = partenza;
+    int profondità = 0;
+    while(!trovato){
+        Tappa** newArrivi;
+        int lunghezzaNewArrivi=0;
+        for(int i=0;i< lunghezzaArrivi ; i++){
+            int lunghezzaArriviParziali=0;
+            Tappa** arriviParziali = CercaArrivi(arrivi[i], end, raggiunta, &trovato, &lunghezzaArriviParziali);
+            if(trovato){
+                conclusione=arrivi[i];
+            }else {
+                //ciclo for per aggiungere gli arrivi parziali ai nuovi arrivi
+                lunghezzaNewArrivi += lunghezzaArriviParziali;
+                newArrivi = (Tappa **) realloc(newArrivi, lunghezzaNewArrivi * sizeof(Tappa *));
+                for (int j = lunghezzaNewArrivi - lunghezzaArriviParziali; i < lunghezzaNewArrivi; i++) {
+                    newArrivi[j] = arriviParziali[j - (lunghezzaNewArrivi - lunghezzaArriviParziali)];
+                }
+                raggiunta=arriviParziali[lunghezzaArriviParziali-1]->stazione;
+            }
+            free(arriviParziali);
+        }
+        free(arrivi);
+        arrivi = newArrivi;
+        lunghezzaArrivi=lunghezzaNewArrivi;
+        profondità++;
+    }
+
+    char* percorso = ScriviPercorso(conclusione,end ,profondità);
+    free(arrivi);
 }
 
 
@@ -336,12 +386,42 @@ int main() {
     InsertNodeMacchina(&stazione->rootMacchine, 30);
     printf("45 = %i\n", stazione->kilometro);
 
+    Stazione** arrivi;
+    stazione=autostrada;
+    int lunghezza=0;
+    while(stazione!=NULL){
+        lunghezza +=1;
+        arrivi = (Stazione**) realloc(arrivi, sizeof(Stazione*)*lunghezza);
+        arrivi[lunghezza-1]=stazione;
+        //printf(" size = %lu\n", sizeof(arrivi));
+        printf("%i(%i) -> ", stazione->kilometro, FindMaxMacchina(stazione->rootMacchine));
+        stazione=stazione->next;
+    }
+    printf("\n");
+
+    for(int i=0; i<lunghezza; i+=1){
+        printf("%i(%i) -> ", arrivi[i]->kilometro, FindMaxMacchina(arrivi[i]->rootMacchine));
+        //free(arrivi[i]);
+    }
+
+    printf("\npuntatore autostrada: %p\n", autostrada);
+    printf("puntatore arrivi: %p\n", arrivi);
+    printf("puntatore arrivi[0]: %p\n", arrivi[0]);
+
+    printf("\npuntatore autostrada: %p\n", &autostrada);
+    printf("puntatore arrivi: %p\n", &arrivi);
+    printf("puntatore arrivi[0]: %p\n", &arrivi[0]);
+
+    printf("\n");
+    free(arrivi);
+
     stazione=autostrada;
     while(stazione!=NULL){
         printf("%i(%i) -> ", stazione->kilometro, FindMaxMacchina(stazione->rootMacchine));
         stazione=stazione->next;
     }
 
+/*
     DeleteStazione(&autostrada,45);
 
     stazione=autostrada;
@@ -354,7 +434,7 @@ int main() {
     DeleteNodeMacchina(&autostrada->next->next->rootMacchine, 250);
     max = FindMaxMacchina(autostrada->next->next->rootMacchine);
     printf("25 = %i\n", max);
-
+*/
 }
 
 
