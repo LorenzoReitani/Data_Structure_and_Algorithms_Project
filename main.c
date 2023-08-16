@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 
 
@@ -312,10 +313,19 @@ char* ScriviPercorso(Tappa* fine,int arrivo ,int profondità){
         tappe[i]=corr->stazione->kilometro;
         corr=corr->precedente;
     }
-    char* risultato = (char*)malloc(6*sizeof (char));
+    char* risultato = (char*)malloc(7*sizeof (char)*(profondità-1));
+    strcpy(risultato,"");
     //scrivo il ciclo per scrivere il risultato fino alla penultima tappa
-
+    char num[10];
+    for(int i=0; 1< profondità-2; i++) {
+        sprintf(num, "%d", tappe[i]);
+        strcat(risultato,num);
+        strcat(risultato, " -> ");
+    }
     //aggiungo al risultato la tappa finale senza le frecce
+    sprintf(num, "%d", arrivo);
+    strcat(risultato, num);
+    return risultato;
 }
 
 //funzione che calcola il percorso
@@ -359,6 +369,7 @@ char* CalcolaPercorso(Stazione* autostrada, int start, int end){
 
     char* percorso = ScriviPercorso(conclusione,end ,profondità);
     free(arrivi);
+    return percorso;
 }
 
 
@@ -367,7 +378,24 @@ char* CalcolaPercorso(Stazione* autostrada, int start, int end){
  ########################################################################*/
 
 int main() {
-    Stazione* autostrada = NULL;
+    char risultato[150] = "bellaaaaa";
+    printf("%s\n", risultato);
+    strcpy(risultato,"");
+    printf("%s\n", risultato);
+    //scrivo il ciclo per scrivere il risultato fino alla penultima tappa
+    int num[10]={0,1,2,3,4,5,6,7,8,9};
+    char numer[10];
+    for(int i=0; i< 10; i++) {
+        sprintf(numer, "%d", num[i]);
+        strcat(risultato,numer);
+        strcat(risultato, " -> ");
+    }
+    printf("%s\n", risultato);
+    //aggiungo al risultato la tappa finale senza le frecce
+    strcat(risultato, numer);
+
+
+    /*Stazione* autostrada = NULL;
     Stazione* stazione = InsertStazione(&autostrada, 30);
     InsertNodeMacchina(&stazione->rootMacchine, 40);
     stazione = InsertStazione(&autostrada, 20);
@@ -419,7 +447,7 @@ int main() {
     while(stazione!=NULL){
         printf("%i(%i) -> ", stazione->kilometro, FindMaxMacchina(stazione->rootMacchine));
         stazione=stazione->next;
-    }
+    }*/
 
 /*
     DeleteStazione(&autostrada,45);
