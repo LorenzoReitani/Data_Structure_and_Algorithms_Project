@@ -305,6 +305,32 @@ Tappa** CercaArrivi(Tappa* partenza, int arrivo, Stazione* raggiunta, bool* trov
     }
 }
 
+//funzione che trova gli arrivi a ritroso partendo da una posizione
+Tappa** CercaArriviRitroso(Tappa* partenza, int arrivo, Stazione* raggiunta, bool* trovato, int* size){
+    int distanza = (partenza->stazione->kilometro)-arrivo;
+    int autonomia =  FindMaxMacchina(partenza->stazione->rootMacchine);
+    Tappa** arrivi = NULL;
+    int lunghezzaArrivi = 0;
+    if(distanza< autonomia){
+        //se la distanza dall'arrivo è minore dell'autonomia ho trovato il percorso migliore
+        *trovato=true;
+        return arrivi;
+    }else{
+        //altrimenti mi salvo le tappe dove sono arrivato;
+        Stazione * corr = raggiunta->next;
+        while(partenza->stazione->kilometro - corr->kilometro < autonomia){
+            lunghezzaArrivi++;
+            Tappa* newTappa = CreateTappa(corr);
+            newTappa->precedente=partenza;
+            arrivi=(Tappa**) realloc(arrivi, lunghezzaArrivi* sizeof(Tappa*));
+            arrivi[lunghezzaArrivi-1]=newTappa;
+            corr = corr->precedente;
+        }
+        *size=lunghezzaArrivi;
+        return arrivi;
+    }
+}
+
 //funzione per scrivere il percorso
 char* ScriviPercorso(Tappa* fine,int arrivo ,int profondità){
     int* tappe = (int*)malloc((profondità) * sizeof(int));
@@ -372,7 +398,50 @@ char* CalcolaPercorso(Stazione* autostrada, int start, int end){
     return percorso;
 }
 
+//funzione per calcolare il percorso a ritroso
 
+char* CalcolaPercorsoRitroso(Stazione* sedere, int start, int end){
+    bool trovato = false;
+    Stazione* partenza = sedere;
+    while(partenza->kilometro!=start){
+        partenza=partenza->precedente;
+    }
+    Tappa* rootTappa = CreateTappa(partenza);
+    Tappa** arrivi =(Tappa**) malloc(sizeof (Tappa*));
+    Tappa* conclusione=NULL;
+    arrivi[0]=rootTappa;
+    int lunghezzaArrivi = 1;
+    Stazione* raggiunta = partenza;
+    int profondità = 0;
+    while(!trovato){
+        Tappa** newArrivi = (Tappa**) malloc(0);
+        int lunghezzaNewArrivi=0;
+        for(int i=0;i< lunghezzaArrivi ; i++){
+            int lunghezzaArriviParziali=0;
+            Tappa** arriviParziali = CercaArrivi(arrivi[i], end, raggiunta, &trovato, &lunghezzaArriviParziali);
+            if(trovato){
+                conclusione=arrivi[i];
+            }else {
+                //ciclo for per aggiungere gli arrivi parziali ai nuovi arrivi
+                lunghezzaNewArrivi += lunghezzaArriviParziali;
+                newArrivi = (Tappa **) realloc(newArrivi, lunghezzaNewArrivi * sizeof(Tappa *));
+                for (int j = lunghezzaNewArrivi - lunghezzaArriviParziali; i < lunghezzaNewArrivi; i++) {
+                    newArrivi[j] = arriviParziali[j - (lunghezzaNewArrivi - lunghezzaArriviParziali)];
+                }
+                raggiunta=arriviParziali[lunghezzaArriviParziali-1]->stazione;
+            }
+            free(arriviParziali);
+        }
+        free(arrivi);
+        arrivi = newArrivi;
+        lunghezzaArrivi=lunghezzaNewArrivi;
+        profondità++;
+    }
+
+    char* percorso = ScriviPercorso(conclusione,end ,profondità);
+    free(arrivi);
+    return percorso;
+}
 /*########################################################################
  * main del programma
  ########################################################################*/
@@ -468,8 +537,19 @@ int main() {
                 fscanf(finput, "%i", &numero);
                 int fine;
                 fscanf(finput, "%i", &fine);
-                char* percorso = CalcolaPercorso(autostrada, numero, fine);
-                printf("\n%s\n", percorso);
+                if(numero == fine){
+                    //stampa solo il numero
+                }else {
+                    char *percorso;
+                    if (numero < fine) {
+                        //cerco il percorso al dritto
+                        percorso = CalcolaPercorso(autostrada, numero, fine);
+                    }else{
+                        percorso = CalcolaPercorsoRitroso(autostrada, numero, fine);
+                        //cerco il perocrso a ritroso
+                    }
+                    printf("\n%s\n", percorso);
+                }
                 break;
 
             default:
