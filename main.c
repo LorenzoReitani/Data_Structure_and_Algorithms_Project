@@ -32,7 +32,6 @@ typedef struct Stazione Stazione;
 struct NodeTappa{
     Stazione * stazione;
     struct NodeTappa* precedente;
-    struct NodeTappa** arrivi;
 };
 typedef struct NodeTappa Tappa;
 
@@ -225,6 +224,7 @@ Stazione* InsertStazione(Stazione** testa, int value){
         }else if(prec==NULL){
             //la stazione è la prima e diventa la testa
             newStazione->next=*testa;
+            (*testa)->precedente = newStazione;
             *testa = newStazione;
         }
         else{
@@ -272,7 +272,6 @@ Tappa* CreateTappa(Stazione* staz){
     Tappa* newTappa = (Tappa*)malloc(sizeof (Tappa));
     newTappa->precedente=NULL;
     newTappa->stazione=staz;
-    newTappa->arrivi=NULL;
     return newTappa;
 }
 
@@ -317,8 +316,8 @@ Tappa** CercaArriviRitroso(Tappa* partenza, int arrivo, Stazione* raggiunta, boo
         return arrivi;
     }else{
         //altrimenti mi salvo le tappe dove sono arrivato;
-        Stazione * corr = raggiunta->next;
-        while(partenza->stazione->kilometro - corr->kilometro < autonomia){
+        Stazione * corr = raggiunta->precedente;
+        while(((partenza->stazione->kilometro) - (corr->kilometro)) < autonomia){
             lunghezzaArrivi++;
             Tappa* newTappa = CreateTappa(corr);
             newTappa->precedente=partenza;
@@ -380,7 +379,7 @@ char* CalcolaPercorso(Stazione* autostrada, int start, int end){
                 //ciclo for per aggiungere gli arrivi parziali ai nuovi arrivi
                 lunghezzaNewArrivi += lunghezzaArriviParziali;
                 newArrivi = (Tappa **) realloc(newArrivi, lunghezzaNewArrivi * sizeof(Tappa *));
-                for (int j = lunghezzaNewArrivi - lunghezzaArriviParziali; i < lunghezzaNewArrivi; i++) {
+                for (int j = lunghezzaNewArrivi - lunghezzaArriviParziali; j < lunghezzaNewArrivi; j++) {
                     newArrivi[j] = arriviParziali[j - (lunghezzaNewArrivi - lunghezzaArriviParziali)];
                 }
                 raggiunta=arriviParziali[lunghezzaArriviParziali-1]->stazione;
@@ -400,11 +399,11 @@ char* CalcolaPercorso(Stazione* autostrada, int start, int end){
 
 //funzione per calcolare il percorso a ritroso
 
-char* CalcolaPercorsoRitroso(Stazione* sedere, int start, int end){
+char* CalcolaPercorsoRitroso(Stazione* autostrada, int start, int end){
     bool trovato = false;
-    Stazione* partenza = sedere;
+    Stazione* partenza = autostrada;
     while(partenza->kilometro!=start){
-        partenza=partenza->precedente;
+        partenza=partenza->next;
     }
     Tappa* rootTappa = CreateTappa(partenza);
     Tappa** arrivi =(Tappa**) malloc(sizeof (Tappa*));
@@ -416,16 +415,17 @@ char* CalcolaPercorsoRitroso(Stazione* sedere, int start, int end){
     while(!trovato){
         Tappa** newArrivi = (Tappa**) malloc(0);
         int lunghezzaNewArrivi=0;
-        for(int i=0;i< lunghezzaArrivi ; i++){
+        for(int i=lunghezzaArrivi-1; i>=0  ; i--){
             int lunghezzaArriviParziali=0;
-            Tappa** arriviParziali = CercaArrivi(arrivi[i], end, raggiunta, &trovato, &lunghezzaArriviParziali);
+            Tappa** arriviParziali = CercaArriviRitroso(arrivi[i], end, raggiunta, &trovato, &lunghezzaArriviParziali);
             if(trovato){
                 conclusione=arrivi[i];
+                i=-1;
             }else {
                 //ciclo for per aggiungere gli arrivi parziali ai nuovi arrivi
                 lunghezzaNewArrivi += lunghezzaArriviParziali;
                 newArrivi = (Tappa **) realloc(newArrivi, lunghezzaNewArrivi * sizeof(Tappa *));
-                for (int j = lunghezzaNewArrivi - lunghezzaArriviParziali; i < lunghezzaNewArrivi; i++) {
+                for (int j = lunghezzaNewArrivi - lunghezzaArriviParziali; j < lunghezzaNewArrivi; j++) {
                     newArrivi[j] = arriviParziali[j - (lunghezzaNewArrivi - lunghezzaArriviParziali)];
                 }
                 raggiunta=arriviParziali[lunghezzaArriviParziali-1]->stazione;
@@ -447,7 +447,7 @@ char* CalcolaPercorsoRitroso(Stazione* sedere, int start, int end){
  ########################################################################*/
 
 int main() {
-/*
+
     Stazione* autostrada = NULL;
     Stazione* stazione = InsertStazione(&autostrada, 30);
     InsertNodeMacchina(&stazione->rootMacchine, 40);
@@ -473,10 +473,15 @@ int main() {
         stazione=stazione->next;
     }
 
-    char* percorso = CalcolaPercorso(autostrada, 20, 50);
+    char* percorso = CalcolaPercorsoRitroso(autostrada, 50, 20);
     printf("\n%s\n", percorso);
-*/
+
+    percorso = CalcolaPercorso(autostrada, 20, 50);
+    printf("\n%s\n", percorso);
+
     //########################################
+
+    /*
     Stazione* autostrada = NULL;
     FILE* finput= fopen("test.text", "r");
     FILE* foutput=fopen("risultato.text","w");
@@ -556,6 +561,7 @@ int main() {
                 break;
         }
     }
+     */
     /*
     Stazione** arrivi;
     stazione=autostrada;
