@@ -64,7 +64,6 @@ Macchina* InsertNodeMacchina(Macchina** root, int value) {
             corr = corr->right;
         }else{
             corr->quantita += 1;
-            printf("aggiunta\n");
             return *root;
         }
     }
@@ -76,7 +75,6 @@ Macchina* InsertNodeMacchina(Macchina** root, int value) {
     }else{
         prec->right = nodoNuovo;
     }
-    printf("aggiunta\n");
     return *root;
 }
 
@@ -139,7 +137,7 @@ Macchina* DeleteNodeMacchina(Macchina** root, int value) {
     //se ci sono più macchine con la stesso autonomia riduco la quantità
     if(nodo->quantita>1){
         nodo->quantita-=1;
-        printf("rottamata");
+        printf("rottamata\n");
         return *root;
     }
     //se c'è una macchina sola devo togliere il nodo
@@ -165,7 +163,7 @@ Macchina* DeleteNodeMacchina(Macchina** root, int value) {
                 *root = padre;
             }
             free(nodo);
-            printf("rottamata");
+            printf("rottamata\n");
         }
         //altrimenti ha 2 alberi e devo gestirli
         else{
@@ -284,14 +282,14 @@ Tappa** CercaArrivi(Tappa* partenza, int arrivo, Stazione* raggiunta, bool* trov
     int autonomia =  FindMaxMacchina(partenza->stazione->rootMacchine);
     Tappa** arrivi = NULL;
     int lunghezzaArrivi = 0;
-    if(distanza< autonomia){
+    if(distanza<= autonomia){
         //se la distanza dall'arrivo è minore dell'autonomia ho trovato il percorso migliore
         *trovato=true;
         return arrivi;
     }else{
         //altrimenti mi salvo le tappe dove sono arrivato;
         Stazione * corr = raggiunta->next;
-        while(corr->kilometro - partenza->stazione->kilometro < autonomia){
+        while(corr->kilometro - partenza->stazione->kilometro <= autonomia){
             lunghezzaArrivi++;
             Tappa* newTappa = CreateTappa(corr);
             newTappa->precedente=partenza;
@@ -310,14 +308,14 @@ Tappa** CercaArriviRitroso(Tappa* partenza, int arrivo, Stazione* raggiunta, boo
     int autonomia =  FindMaxMacchina(partenza->stazione->rootMacchine);
     Tappa** arrivi = NULL;
     int lunghezzaArrivi = 0;
-    if(distanza< autonomia){
+    if(distanza<= autonomia){
         //se la distanza dall'arrivo è minore dell'autonomia ho trovato il percorso migliore
         *trovato=true;
         return arrivi;
     }else{
         //altrimenti mi salvo le tappe dove sono arrivato;
         Stazione * corr = raggiunta->precedente;
-        while(((partenza->stazione->kilometro) - (corr->kilometro)) < autonomia){
+        while(((partenza->stazione->kilometro) - (corr->kilometro)) <= autonomia){
             lunghezzaArrivi++;
             Tappa* newTappa = CreateTappa(corr);
             newTappa->precedente=partenza;
@@ -338,14 +336,13 @@ char* ScriviPercorso(Tappa* fine,int arrivo ,int profondità){
         tappe[i]=corr->stazione->kilometro;
         corr=corr->precedente;
     }
-    char* risultato = (char*)malloc(7*sizeof (char)*(profondità-1));
+    char* risultato = (char*)malloc(10*sizeof (char)*(profondità-1));
     strcpy(risultato,"");
     //scrivo il ciclo per scrivere il risultato fino alla penultima tappa
     char num[10];
     for(int i=0; i<= profondità-1; i++) {
-        sprintf(num, "%d", tappe[i]);
+        sprintf(num, "%d ", tappe[i]);
         strcat(risultato,num);
-        strcat(risultato, " -> ");
     }
     //aggiungo al risultato la tappa finale senza le frecce
     sprintf(num, "%d", arrivo);
@@ -382,7 +379,9 @@ char* CalcolaPercorso(Stazione* autostrada, int start, int end){
                 for (int j = lunghezzaNewArrivi - lunghezzaArriviParziali; j < lunghezzaNewArrivi; j++) {
                     newArrivi[j] = arriviParziali[j - (lunghezzaNewArrivi - lunghezzaArriviParziali)];
                 }
-                raggiunta=arriviParziali[lunghezzaArriviParziali-1]->stazione;
+                if (lunghezzaArriviParziali > 0) {
+                    raggiunta = arriviParziali[lunghezzaArriviParziali - 1]->stazione;
+                }
             }
             free(arriviParziali);
         }
@@ -390,6 +389,10 @@ char* CalcolaPercorso(Stazione* autostrada, int start, int end){
         arrivi = newArrivi;
         lunghezzaArrivi=lunghezzaNewArrivi;
         profondità++;
+        if(lunghezzaArrivi==0 && !trovato){
+            free(arrivi);
+            return NULL;
+        }
     }
 
     char* percorso = ScriviPercorso(conclusione,end ,profondità);
@@ -428,7 +431,9 @@ char* CalcolaPercorsoRitroso(Stazione* autostrada, int start, int end){
                 for (int j = lunghezzaNewArrivi - lunghezzaArriviParziali; j < lunghezzaNewArrivi; j++) {
                     newArrivi[j] = arriviParziali[j - (lunghezzaNewArrivi - lunghezzaArriviParziali)];
                 }
-                raggiunta=arriviParziali[lunghezzaArriviParziali-1]->stazione;
+                if(lunghezzaArriviParziali>0) {
+                    raggiunta = arriviParziali[lunghezzaArriviParziali - 1]->stazione;
+                }
             }
             free(arriviParziali);
         }
@@ -436,6 +441,10 @@ char* CalcolaPercorsoRitroso(Stazione* autostrada, int start, int end){
         arrivi = newArrivi;
         lunghezzaArrivi=lunghezzaNewArrivi;
         profondità++;
+        if(lunghezzaArrivi==0 && !trovato){
+            free(arrivi);
+            return NULL;
+        }
     }
 
     char* percorso = ScriviPercorso(conclusione,end ,profondità);
@@ -447,7 +456,7 @@ char* CalcolaPercorsoRitroso(Stazione* autostrada, int start, int end){
  ########################################################################*/
 
 int main() {
-
+  /*
     Stazione* autostrada = NULL;
     Stazione* stazione = InsertStazione(&autostrada, 30);
     InsertNodeMacchina(&stazione->rootMacchine, 40);
@@ -478,56 +487,61 @@ int main() {
 
     percorso = CalcolaPercorso(autostrada, 20, 50);
     printf("\n%s\n", percorso);
-
+*/
     //########################################
 
-    /*
+
     Stazione* autostrada = NULL;
-    FILE* finput= fopen("test.text", "r");
-    FILE* foutput=fopen("risultato.text","w");
     char letto[20];
-    fscanf(finput, "%s ", letto);
     int numero;
-    while(!feof(finput)) {
+    int linea=1;
+    scanf("%s ", letto);
+    while(!feof(stdin)) {
+        printf("%d\n", linea);
+        linea++;
         switch (letto[0]) {
             case 'a':
                 if(letto[9]=='s'){
                     //caso di aggiungi-stazione
-                    fscanf(finput, "%i", &numero);
+                    scanf( "%i", &numero);
                     Stazione* stazione = InsertStazione(&autostrada, numero);
                     if(stazione!=NULL) {
-                        fscanf(finput, "%i", &numero);
+                        scanf( "%i", &numero);
                         int aut;
                         for (int i = numero; i > 0; i--) {
-                            fscanf(finput, "%i", &aut);
+                            scanf( "%i", &aut);
                             InsertNodeMacchina(&(stazione->rootMacchine), aut);
                         }
                     }
                 }else{
-                    fscanf(finput, "%i", &numero);
+                    //caso di aggiungi-auto
+                    scanf( "%i", &numero);
                     int autonomia;
-                    fscanf(finput, "%i", &autonomia);
+                    scanf( "%i", &autonomia);
                     Stazione* stazione = autostrada;
                     while(stazione!=NULL && stazione->kilometro != numero){
                         stazione = stazione->next;
                     }
                     if(stazione!=NULL) {
                         InsertNodeMacchina(&stazione->rootMacchine, autonomia);
+                        printf("aggiunta\n");
+                    }else{
+                        printf("non aggiunta\n");
                     }
                 }
                 break;
 
             case 'd':
                 //caso demolisci-stazione
-                fscanf(finput, "%i", &numero);
+                scanf( "%i", &numero);
                 DeleteStazione(&autostrada, numero);
                 break;
 
             case 'r':
                 //caso rottama-auto
-                fscanf(finput, "%i", &numero);
+                scanf( "%i", &numero);
                 int autonomia;
-                fscanf(finput, "%i", &autonomia);
+                scanf( "%i", &autonomia);
                 Stazione* stazione = autostrada;
                 while(stazione!=NULL && stazione->kilometro != numero){
                     stazione = stazione->next;
@@ -535,15 +549,18 @@ int main() {
                 if(stazione!=NULL) {
                     DeleteNodeMacchina(&stazione->rootMacchine, autonomia);
                 }
+                else{
+                    printf("non rottamata\n");
+                }
                 break;
 
             case 'p':
                 //caso pianifica-percorso;
-                fscanf(finput, "%i", &numero);
+                scanf( "%i", &numero);
                 int fine;
-                fscanf(finput, "%i", &fine);
+                scanf( "%i", &fine);
                 if(numero == fine){
-                    //stampa solo il numero
+                    printf("%i\n", fine);
                 }else {
                     char *percorso;
                     if (numero < fine) {
@@ -553,15 +570,21 @@ int main() {
                         percorso = CalcolaPercorsoRitroso(autostrada, numero, fine);
                         //cerco il perocrso a ritroso
                     }
-                    printf("\n%s\n", percorso);
+                    if(percorso == NULL){
+                        printf("nessun percorso\n");
+                    }else {
+                        printf("%s\n", percorso);
+                        free(percorso);
+                    }
                 }
                 break;
 
             default:
                 break;
         }
+        scanf("%s ", letto);
     }
-     */
+
     /*
     Stazione** arrivi;
     stazione=autostrada;
