@@ -49,6 +49,7 @@ Macchina* CreateNodeMacchina(int autonomia) {
     newNodeMacchina->autonomia = autonomia;
     newNodeMacchina->left = NULL;
     newNodeMacchina->right = NULL;
+    newNodeMacchina->quantita=1;
     return newNodeMacchina;
 }
 
@@ -80,6 +81,9 @@ Macchina* InsertNodeMacchina(Macchina** root, int value) {
 
 // Funzione per trovare il valore massimo nel BST di macchine
 int FindMaxMacchina(Macchina* root) {
+    if(root==NULL){
+        return 0;
+    }
     while (root->right != NULL) {
         root = root->right;
     }
@@ -111,6 +115,54 @@ Macchina* SuccessoreMacchina(Macchina* root){
     return curr;
 }
 
+// Funzione per cancellare il successore nel BST
+Macchina* DeleteSuccessore(Macchina** root, int value) {
+    //creco il padre del nodo da cancellare
+    Macchina* padre = CercaPadreMacchina(*root, value);
+    Macchina* nodo = NULL;
+    //se il padre é NULL vuol dire che il nodo è la radice
+    if(padre == NULL){
+        nodo = *root;
+    }else{
+        // se il padre ha almeno un figlio vuol dire che il nodo cercato esiste
+        if (padre->right!=NULL && padre->right->autonomia==value){
+            nodo = padre->right;
+        }else if(padre->left != NULL && padre->left->autonomia==value){
+            nodo = padre->left;
+        }else{
+            //altrimenti non è stato trovato
+            printf("non rottamata\n");
+            return *root;
+        }
+    }
+
+        //se c'è una macchina sola devo togliere il nodo
+        Macchina *puntatore;
+        //il nodo ha al massimo 1 figlio
+        if(nodo->right==NULL || nodo->left==NULL){
+            if(nodo->right==NULL){
+                puntatore=nodo->left;
+            }else{
+                puntatore=nodo->right;
+            }
+            //se il padre c'è lo aggiorno
+            if(padre!=NULL){
+                if(value<padre->autonomia){
+                    padre->left=puntatore;
+                }else{
+                    padre->right=puntatore;
+                }
+            }
+                //se il padre non c'è aggiorno la root
+            else{
+                *root = puntatore;
+            }
+            free(nodo);
+            printf("rottamata\n");
+        }
+    return *root;
+}
+
 // Funzione per cancellare un nodo macchina nel BST
 Macchina* DeleteNodeMacchina(Macchina** root, int value) {
     //creco il padre del nodo da cancellare
@@ -121,15 +173,12 @@ Macchina* DeleteNodeMacchina(Macchina** root, int value) {
         nodo = *root;
     }else{
         // se il padre ha almeno un figlio vuol dire che il nodo cercato esiste
-        if (padre->right!=NULL || padre->left!=NULL){
-            if (value<padre->autonomia){
-                nodo = padre->left;
-            }else{
+        if (padre->right!=NULL && padre->right->autonomia==value){
                 nodo = padre->right;
-            }
-        }
-        //altrimenti non è stato trovato
-        else{
+        }else if(padre->left != NULL && padre->left->autonomia==value){
+            nodo = padre->left;
+        }else{
+            //altrimenti non è stato trovato
             printf("non rottamata\n");
             return *root;
         }
@@ -160,7 +209,7 @@ Macchina* DeleteNodeMacchina(Macchina** root, int value) {
             }
             //se il padre non c'è aggiorno la root
             else{
-                *root = padre;
+                *root = puntatore;
             }
             free(nodo);
             printf("rottamata\n");
@@ -169,8 +218,10 @@ Macchina* DeleteNodeMacchina(Macchina** root, int value) {
         else{
             Macchina* successore = SuccessoreMacchina(nodo);
             int val= successore->autonomia;
-            DeleteNodeMacchina(root, val);
+            int quant = successore->quantita;
+            DeleteSuccessore(root, val);
             nodo->autonomia = val;
+            nodo->quantita = quant;
             }
     }
     return *root;
@@ -251,10 +302,14 @@ Stazione* DeleteStazione(Stazione** testa, int value) {
         if(prec==NULL){
             //devo eliminare la testa
             *testa=corr->next;
-            (corr->next)->precedente = NULL;
+            if(corr->next != NULL) {
+                (corr->next)->precedente = NULL;
+            }
         }else{
             prec->next=corr->next;
-            (corr->next)->precedente = prec;
+            if(corr->next!=NULL) {
+                (corr->next)->precedente = prec;
+            }
         }
         DeleteTreeMacchina(corr->rootMacchine);
         free(corr);
@@ -339,7 +394,7 @@ char* ScriviPercorso(Tappa* fine,int arrivo ,int profondità){
     char* risultato = (char*)malloc(10*sizeof (char)*(profondità-1));
     strcpy(risultato,"");
     //scrivo il ciclo per scrivere il risultato fino alla penultima tappa
-    char num[10];
+    char num[20];
     for(int i=0; i<= profondità-1; i++) {
         sprintf(num, "%d ", tappe[i]);
         strcat(risultato,num);
@@ -367,7 +422,7 @@ char* CalcolaPercorso(Stazione* autostrada, int start, int end){
     while(!trovato){
         Tappa** newArrivi = (Tappa**) malloc(0);
         int lunghezzaNewArrivi=0;
-        for(int i=0;i< lunghezzaArrivi ; i++){
+        for(int i=0;i< lunghezzaArrivi && !trovato ; i++){
             int lunghezzaArriviParziali=0;
             Tappa** arriviParziali = CercaArrivi(arrivi[i], end, raggiunta, &trovato, &lunghezzaArriviParziali);
             if(trovato){
@@ -418,7 +473,7 @@ char* CalcolaPercorsoRitroso(Stazione* autostrada, int start, int end){
     while(!trovato){
         Tappa** newArrivi = (Tappa**) malloc(0);
         int lunghezzaNewArrivi=0;
-        for(int i=lunghezzaArrivi-1; i>=0  ; i--){
+        for(int i=lunghezzaArrivi-1; i>=0 && !trovato; i--){
             int lunghezzaArriviParziali=0;
             Tappa** arriviParziali = CercaArriviRitroso(arrivi[i], end, raggiunta, &trovato, &lunghezzaArriviParziali);
             if(trovato){
@@ -580,6 +635,7 @@ int main() {
                 break;
 
             default:
+                linea--;
                 break;
         }
         scanf("%s ", letto);
