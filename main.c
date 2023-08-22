@@ -136,9 +136,63 @@ Macchina* DeleteSuccessore(Macchina** root, int value) {
         }
     }
 
+    //se c'è una macchina sola devo togliere il nodo
+    Macchina *puntatore;
+    //il nodo ha al massimo 1 figlio
+    if(nodo->right==NULL || nodo->left==NULL){
+        if(nodo->right==NULL){
+            puntatore=nodo->left;
+        }else{
+            puntatore=nodo->right;
+        }
+        //se il padre c'è lo aggiorno
+        if(padre!=NULL){
+            if(value<padre->autonomia){
+                padre->left=puntatore;
+            }else{
+                padre->right=puntatore;
+            }
+        }
+            //se il padre non c'è aggiorno la root
+        else{
+            *root = puntatore;
+        }
+        free(nodo);
+        printf("rottamata\n");
+    }
+    return *root;
+}
+
+// Funzione per cancellare un nodo macchina nel BST
+Macchina* DeleteNodeMacchina(Macchina** root, int value) {
+    //creco il padre del nodo da cancellare
+    Macchina* padre = CercaPadreMacchina(*root, value);
+    Macchina* nodo = NULL;
+    //se il padre é NULL vuol dire che il nodo è la radice
+    if(padre == NULL){
+        nodo = *root;
+    }else{
+        // se il padre ha almeno un figlio vuol dire che il nodo cercato esiste
+        if (padre->right!=NULL && padre->right->autonomia==value){
+            nodo = padre->right;
+        }else if(padre->left != NULL && padre->left->autonomia==value){
+            nodo = padre->left;
+        }else{
+            //altrimenti non è stato trovato
+            printf("non rottamata\n");
+            return *root;
+        }
+    }
+    //se ci sono più macchine con la stesso autonomia riduco la quantità
+    if(nodo->quantita>1){
+        nodo->quantita-=1;
+        printf("rottamata\n");
+        return *root;
+    }
         //se c'è una macchina sola devo togliere il nodo
+    else{
         Macchina *puntatore;
-        //il nodo ha al massimo 1 figlio
+        //se il nodo ha al massimo 1 figlio
         if(nodo->right==NULL || nodo->left==NULL){
             if(nodo->right==NULL){
                 puntatore=nodo->left;
@@ -160,61 +214,7 @@ Macchina* DeleteSuccessore(Macchina** root, int value) {
             free(nodo);
             printf("rottamata\n");
         }
-    return *root;
-}
-
-// Funzione per cancellare un nodo macchina nel BST
-Macchina* DeleteNodeMacchina(Macchina** root, int value) {
-    //creco il padre del nodo da cancellare
-    Macchina* padre = CercaPadreMacchina(*root, value);
-    Macchina* nodo = NULL;
-    //se il padre é NULL vuol dire che il nodo è la radice
-    if(padre == NULL){
-        nodo = *root;
-    }else{
-        // se il padre ha almeno un figlio vuol dire che il nodo cercato esiste
-        if (padre->right!=NULL && padre->right->autonomia==value){
-                nodo = padre->right;
-        }else if(padre->left != NULL && padre->left->autonomia==value){
-            nodo = padre->left;
-        }else{
-            //altrimenti non è stato trovato
-            printf("non rottamata\n");
-            return *root;
-        }
-    }
-    //se ci sono più macchine con la stesso autonomia riduco la quantità
-    if(nodo->quantita>1){
-        nodo->quantita-=1;
-        printf("rottamata\n");
-        return *root;
-    }
-    //se c'è una macchina sola devo togliere il nodo
-    else{
-        Macchina *puntatore;
-        //se il nodo ha al massimo 1 figlio
-        if(nodo->right==NULL || nodo->left==NULL){
-            if(nodo->right==NULL){
-                puntatore=nodo->left;
-            }else{
-                puntatore=nodo->right;
-            }
-            //se il padre c'è lo aggiorno
-            if(padre!=NULL){
-                if(value<padre->autonomia){
-                    padre->left=puntatore;
-                }else{
-                    padre->right=puntatore;
-                }
-            }
-            //se il padre non c'è aggiorno la root
-            else{
-                *root = puntatore;
-            }
-            free(nodo);
-            printf("rottamata\n");
-        }
-        //altrimenti ha 2 alberi e devo gestirli
+            //altrimenti ha 2 alberi e devo gestirli
         else{
             Macchina* successore = SuccessoreMacchina(nodo);
             int val= successore->autonomia;
@@ -222,7 +222,7 @@ Macchina* DeleteNodeMacchina(Macchina** root, int value) {
             DeleteSuccessore(root, val);
             nodo->autonomia = val;
             nodo->quantita = quant;
-            }
+        }
     }
     return *root;
 }
