@@ -28,6 +28,18 @@ struct Stazione{
 };
 typedef struct Stazione Stazione;
 
+//dichiaro la struttura della stazione come albero
+struct StazioneNodo{
+    int kilometro;
+    Macchina * rootMacchine;
+    struct StazioneNodo* precedente;
+    struct StazioneNodo* next;
+    struct StazioneNodo* padre;
+    struct StazioneNodo* right;
+    struct StazioneNodo* left;
+};
+typedef struct StazioneNodo StazioneNodo;
+
 //dichiaro la struttura nodo della tappa per ricercare il percorso
 struct NodeTappa{
     Stazione * stazione;
@@ -135,10 +147,9 @@ Macchina* DeleteSuccessore(Macchina** root, int value) {
             return *root;
         }
     }
-
     //se c'è una macchina sola devo togliere il nodo
     Macchina *puntatore;
-    //il nodo ha al massimo 1 figlio
+    //se il nodo ha al massimo 1 figlio
     if(nodo->right==NULL || nodo->left==NULL){
         if(nodo->right==NULL){
             puntatore=nodo->left;
@@ -153,7 +164,7 @@ Macchina* DeleteSuccessore(Macchina** root, int value) {
                 padre->right=puntatore;
             }
         }
-            //se il padre non c'è aggiorno la root
+        //se il padre non c'è aggiorno la root
         else{
             *root = puntatore;
         }
@@ -207,7 +218,7 @@ Macchina* DeleteNodeMacchina(Macchina** root, int value) {
                     padre->right=puntatore;
                 }
             }
-                //se il padre non c'è aggiorno la root
+            //se il padre non c'è aggiorno la root
             else{
                 *root = puntatore;
             }
@@ -250,6 +261,33 @@ Stazione* CreateStazione (int value){
     return newStazione;
 }
 
+//Funzione per creare una nuova stazione nodo
+StazioneNodo* CreateStazioneNodo (int value){
+    StazioneNodo* newStazione = (StazioneNodo *)malloc(sizeof(StazioneNodo));
+    newStazione->kilometro = value;
+    newStazione->precedente=NULL;
+    newStazione->next = NULL;
+    newStazione->rootMacchine = NULL;
+    newStazione->left=NULL;
+    newStazione->right=NULL;
+    newStazione->padre=NULL;
+    return newStazione;
+}
+
+//Funzione per cercare una stazione
+StazioneNodo* CercaStazione(StazioneNodo* root ,int value){
+    StazioneNodo* corr = root;
+    while(corr!=NULL && corr->kilometro!=value) {
+
+        if (value < corr->kilometro) {
+            corr = corr->left;
+        } else {
+            corr = corr->right;
+        }
+    }
+    return corr;
+}
+
 //Funzione per inserire una nuova stazione
 Stazione* InsertStazione(Stazione** testa, int value){
     Stazione* newStazione = CreateStazione(value);
@@ -290,6 +328,43 @@ Stazione* InsertStazione(Stazione** testa, int value){
     return newStazione;
 }
 
+//Funzione per inserire una stazione nodo nell'albero
+StazioneNodo* InsertStazioneNodo(StazioneNodo** root, int value){
+    StazioneNodo* prec = NULL;
+    StazioneNodo* corr = *root;
+    while (corr != NULL){
+        prec = corr;
+        if(value<corr->kilometro){
+            corr = corr->left;
+        }else if(value>corr->kilometro){
+            corr = corr->right;
+        }else{
+            printf("non aggiunta\n");
+            return NULL;
+        }
+    }
+    StazioneNodo* newStazione = CreateStazioneNodo(value);
+    if(prec==NULL){
+        //l'autostrada è vuota e devo inizializzarla
+        *root = newStazione;
+    }else if(value < prec->kilometro){
+        prec->left = newStazione;
+    }else{
+        prec->right = newStazione;
+    }
+    newStazione->padre=prec;
+    StazioneNodo* successivo = newStazione;
+    while (successivo->kilometro <= value){
+        successivo = successivo->padre;
+    }
+    newStazione->next = successivo;
+    newStazione->precedente = successivo->precedente;
+    (successivo->precedente)->next=newStazione;
+    successivo->precedente=newStazione;
+    printf("aggiunta\n");
+    return newStazione;
+}
+
 //Funzione per distruggere una stazione
 Stazione* DeleteStazione(Stazione** testa, int value) {
     Stazione* corr= *testa;
@@ -318,6 +393,95 @@ Stazione* DeleteStazione(Stazione** testa, int value) {
         //stazione non trovata
         printf("non demolita\n");
     return *testa;
+}
+
+//funzione per gestire la cancellazione di un nodo con due figli
+StazioneNodo* DeleteConSuccessore(StazioneNodo* root) {
+    StazioneNodo *successore = root->right;
+    while (successore->left != NULL) {
+        successore = successore->left;
+    }
+    if (successore->padre != root) {
+        successore->padre->left = successore->right;
+
+
+        if (successore->right != NULL) {
+        successore->right->padre = successore->padre;
+        }
+
+        root->right->padre=successore;
+
+
+        successore->right=root->right;
+    }
+    successore->padre=root->padre;
+    if(root->padre!=NULL) {
+        if(root->kilometro < root->padre->kilometro){
+            root->padre->left=successore;
+        }else{
+            root->padre->right=successore;
+        }
+    }
+    if(root->left != NULL){
+        root->left->padre=successore;
+    }
+    successore->left=root->left;
+    free(root);
+    return successore;
+}
+
+//funzione per cancellare un nodo stazione
+StazioneNodo* DeleteStazioneNodo(StazioneNodo** root, int value){
+    StazioneNodo* nodo = CercaStazione(*root, value);
+    if(nodo!=NULL){
+        if(nodo->padre == NULL){
+            //se il padre é NULL vuol dire che il nodo è la radice
+            nodo = *root;
+        }
+        //aggiorno precedente e successivo
+        if(nodo->next != NULL){
+            nodo->next->precedente=nodo->precedente;
+        }
+        if(nodo->precedente != NULL){
+            nodo->precedente->next=nodo->next;
+        }
+        //distruggo il parcheggio
+        DeleteTreeMacchina(nodo->rootMacchine);
+        //procedo ad eliminare il nodo
+        StazioneNodo* puntatore;
+        //se il nodo ha al massimo 1 figlio
+        if(nodo->right==NULL || nodo->left==NULL) {
+            if (nodo->right == NULL) {
+                puntatore = nodo->left;
+            } else {
+                puntatore = nodo->right;
+            }
+            //se il padre c'è lo aggiorno
+            if(nodo->padre!=NULL){
+                if(value < nodo->padre->kilometro){
+                    nodo->padre->left=puntatore;
+                }else{
+                    nodo->padre->right=puntatore;
+                }
+                puntatore->padre=nodo->padre;
+            }
+            //se il padre non c'è aggiorno la root
+            else{
+                *root = puntatore;
+                puntatore->padre=NULL;
+            }
+            free(nodo);
+        }
+        //altrimenti ha 2 alberi e devo gestirli
+        else{
+            DeleteConSuccessore(nodo);
+        }
+        printf("demolita\n");
+    }else{
+        //stazione non trovata
+        printf("non demolita\n");
+    }
+    return *root;
 }
 
 //####################### funziomi per le tappe ######################
