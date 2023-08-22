@@ -31,7 +31,9 @@ typedef struct Stazione Stazione;
 //dichiaro la struttura nodo della tappa per ricercare il percorso
 struct NodeTappa{
     Stazione * stazione;
+    int lunghezzaFigli;
     struct NodeTappa* precedente;
+    struct NodeTappa** figli;
 };
 typedef struct NodeTappa Tappa;
 
@@ -320,12 +322,30 @@ Stazione* DeleteStazione(Stazione** testa, int value) {
     return *testa;
 }
 
+void DeleteAutostrada(Stazione* testa){
+    if(testa->next!=NULL){
+        DeleteAutostrada(testa->next);
+    }
+    DeleteTreeMacchina(testa->rootMacchine);
+    free(testa);
+}
+
 //####################### funziomi per le tappe ######################
 Tappa* CreateTappa(Stazione* staz){
     Tappa* newTappa = (Tappa*)malloc(sizeof (Tappa));
     newTappa->precedente=NULL;
+    newTappa->lunghezzaFigli=0;
     newTappa->stazione=staz;
+    newTappa->figli=NULL;
     return newTappa;
+}
+
+void DeleteTappe(Tappa* root){
+    for(int i = 0; i< root->lunghezzaFigli; i++){
+        DeleteTappe(root->figli[i]);
+    }
+    free(root->figli);
+    free(root);
 }
 
 
@@ -353,6 +373,7 @@ Tappa** CercaArrivi(Tappa* partenza, int arrivo, Stazione* raggiunta, bool* trov
             corr = corr->next;
         }
         *size=lunghezzaArrivi;
+        partenza->lunghezzaFigli=lunghezzaArrivi;
         return arrivi;
     }
 }
@@ -379,6 +400,7 @@ Tappa** CercaArriviRitroso(Tappa* partenza, int arrivo, Stazione* raggiunta, boo
             corr = corr->precedente;
         }
         *size=lunghezzaArrivi;
+        partenza->lunghezzaFigli=lunghezzaArrivi;
         return arrivi;
     }
 }
@@ -402,6 +424,7 @@ char* ScriviPercorso(Tappa* fine,int arrivo ,int profondita){
     //aggiungo al risultato la tappa finale senza le frecce
     sprintf(num, "%d", arrivo);
     strcat(risultato, num);
+    free(tappe);
     return risultato;
 }
 
@@ -425,6 +448,7 @@ char* CalcolaPercorso(Stazione* autostrada, int start, int end){
         for(int i=0;i< lunghezzaArrivi && !trovato ; i++){
             int lunghezzaArriviParziali=0;
             Tappa** arriviParziali = CercaArrivi(arrivi[i], end, raggiunta, &trovato, &lunghezzaArriviParziali);
+            arrivi[i]->figli=arriviParziali;
             if(trovato){
                 conclusione=arrivi[i];
             }else {
@@ -438,7 +462,6 @@ char* CalcolaPercorso(Stazione* autostrada, int start, int end){
                     raggiunta = arriviParziali[lunghezzaArriviParziali - 1]->stazione;
                 }
             }
-            free(arriviParziali);
         }
         free(arrivi);
         arrivi = newArrivi;
@@ -446,12 +469,14 @@ char* CalcolaPercorso(Stazione* autostrada, int start, int end){
         profondita++;
         if(lunghezzaArrivi==0 && !trovato){
             free(arrivi);
+            DeleteTappe(rootTappa);
             return NULL;
         }
     }
 
     char* percorso = ScriviPercorso(conclusione,end ,profondita);
     free(arrivi);
+    DeleteTappe(rootTappa);
     return percorso;
 }
 
@@ -476,6 +501,7 @@ char* CalcolaPercorsoRitroso(Stazione* autostrada, int start, int end){
         for(int i=lunghezzaArrivi-1; i>=0 && !trovato; i--){
             int lunghezzaArriviParziali=0;
             Tappa** arriviParziali = CercaArriviRitroso(arrivi[i], end, raggiunta, &trovato, &lunghezzaArriviParziali);
+            arrivi[i]->figli=arriviParziali;
             if(trovato){
                 conclusione=arrivi[i];
                 i=-1;
@@ -490,7 +516,6 @@ char* CalcolaPercorsoRitroso(Stazione* autostrada, int start, int end){
                     raggiunta = arriviParziali[lunghezzaArriviParziali - 1]->stazione;
                 }
             }
-            free(arriviParziali);
         }
         free(arrivi);
         arrivi = newArrivi;
@@ -498,12 +523,14 @@ char* CalcolaPercorsoRitroso(Stazione* autostrada, int start, int end){
         profondita++;
         if(lunghezzaArrivi==0 && !trovato){
             free(arrivi);
+            DeleteTappe(rootTappa);
             return NULL;
         }
     }
 
     char* percorso = ScriviPercorso(conclusione,end ,profondita);
     free(arrivi);
+    DeleteTappe(rootTappa);
     return percorso;
 }
 /*########################################################################
@@ -515,9 +542,10 @@ int main() {
     char letto[20];
     int numero;
     int scan=1;
-    //int linea=1;
+   // int linea=1;
     scan=scanf("%s ", letto);
-    while(!feof(stdin)) {
+    bool continua = true;
+    while(!feof(stdin) && continua) {
         //printf("%d\n", linea);
         //linea++;
         switch (letto[0]) {
@@ -600,6 +628,10 @@ int main() {
                 }
                 break;
 
+            case 'q':
+                continua=false;
+                break;
+
             default:
                 //linea--;
                 break;
@@ -607,6 +639,7 @@ int main() {
         scan=scanf("%s ", letto);
     }
     if(!scan){}
+    DeleteAutostrada(autostrada);
 }
 
 

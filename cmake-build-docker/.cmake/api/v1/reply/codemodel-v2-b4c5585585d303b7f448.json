@@ -6,10 +6,9 @@
 			[
 				{
 					"build" : ".",
-					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
 					"minimumCMakeVersion" : 
 					{
-						"string" : "3.26"
+						"string" : "3.16"
 					},
 					"projectIndex" : 0,
 					"source" : ".",
@@ -39,7 +38,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "API::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-API-Debug-6d2b3867d1a68aed631d.json",
+					"jsonFile" : "target-API-Debug-fafd0ea6da3d9999cf8a.json",
 					"name" : "API",
 					"projectIndex" : 0
 				}
@@ -49,12 +48,12 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "/Users/lollo/CLionProjects/API/cmake-build-debug",
-		"source" : "/Users/lollo/CLionProjects/API"
+		"build" : "/tmp/API/cmake-build-docker",
+		"source" : "/tmp/API"
 	},
 	"version" : 
 	{
 		"major" : 2,
-		"minor" : 5
+		"minor" : 0
 	}
 }
