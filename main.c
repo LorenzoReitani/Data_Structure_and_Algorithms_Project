@@ -20,14 +20,14 @@ struct NodeMacchina {
 typedef struct NodeMacchina Macchina;
 
 //dichiaro la struttura della stazione
-struct Stazione{
+/*struct Stazione{
     int kilometro;
     Macchina * rootMacchine;
     struct Stazione* precedente;
     struct Stazione* next;
 };
 typedef struct Stazione Stazione;
-
+*/
 //dichiaro la struttura della stazione come albero
 struct StazioneNodo{
     int kilometro;
@@ -42,7 +42,7 @@ typedef struct StazioneNodo StazioneNodo;
 
 //dichiaro la struttura nodo della tappa per ricercare il percorso
 struct NodeTappa{
-    Stazione * stazione;
+    StazioneNodo * stazione;
     struct NodeTappa* precedente;
 };
 typedef struct NodeTappa Tappa;
@@ -251,7 +251,7 @@ Macchina* DeleteTreeMacchina(Macchina* root){
 
 //####################### funziomi per le stazioni ######################
 
-//Funzione per creare una nuova stazione
+/*//Funzione per creare una nuova stazione
 Stazione* CreateStazione (int value){
     Stazione * newStazione = (Stazione *)malloc(sizeof(Stazione));
     newStazione->kilometro = value;
@@ -259,7 +259,7 @@ Stazione* CreateStazione (int value){
     newStazione->next = NULL;
     newStazione->rootMacchine = NULL;
     return newStazione;
-}
+}*/
 
 //Funzione per creare una nuova stazione nodo
 StazioneNodo* CreateStazioneNodo (int value){
@@ -288,7 +288,7 @@ StazioneNodo* CercaStazione(StazioneNodo* root ,int value){
     return corr;
 }
 
-//Funzione per inserire una nuova stazione
+/*//Funzione per inserire una nuova stazione
 Stazione* InsertStazione(Stazione** testa, int value){
     Stazione* newStazione = CreateStazione(value);
     //se la testa è nulla la stazione diventa la testa
@@ -326,7 +326,7 @@ Stazione* InsertStazione(Stazione** testa, int value){
     }
     printf("aggiunta\n");
     return newStazione;
-}
+}*/
 
 //Funzione per inserire una stazione nodo nell'albero
 StazioneNodo* InsertStazioneNodo(StazioneNodo** root, int value){
@@ -352,20 +352,30 @@ StazioneNodo* InsertStazioneNodo(StazioneNodo** root, int value){
     }else{
         prec->right = newStazione;
     }
+
     newStazione->padre=prec;
     StazioneNodo* successivo = newStazione;
-    while (successivo->kilometro <= value){
+    while (successivo!=NULL && successivo->kilometro <= value){
         successivo = successivo->padre;
     }
     newStazione->next = successivo;
-    newStazione->precedente = successivo->precedente;
-    (successivo->precedente)->next=newStazione;
-    successivo->precedente=newStazione;
+    if(successivo!=NULL) {
+        newStazione->precedente = successivo->precedente;
+        if(successivo->precedente != NULL) {
+            (successivo->precedente)->next = newStazione;
+        }
+        successivo->precedente = newStazione;
+    }else{
+        newStazione->precedente = newStazione->padre;
+        if(newStazione->padre!=NULL) {
+            newStazione->padre->next = newStazione;
+        }
+    }
     printf("aggiunta\n");
     return newStazione;
 }
 
-//Funzione per distruggere una stazione
+/*//Funzione per distruggere una stazione
 Stazione* DeleteStazione(Stazione** testa, int value) {
     Stazione* corr= *testa;
     Stazione * prec=NULL;
@@ -393,7 +403,7 @@ Stazione* DeleteStazione(Stazione** testa, int value) {
         //stazione non trovata
         printf("non demolita\n");
     return *testa;
-}
+}*/
 
 //funzione per gestire la cancellazione di un nodo con due figli
 StazioneNodo* DeleteConSuccessore(StazioneNodo* root) {
@@ -463,12 +473,16 @@ StazioneNodo* DeleteStazioneNodo(StazioneNodo** root, int value){
                 }else{
                     nodo->padre->right=puntatore;
                 }
-                puntatore->padre=nodo->padre;
+                if(puntatore!=NULL) {
+                    puntatore->padre = nodo->padre;
+                }
             }
             //se il padre non c'è aggiorno la root
             else{
                 *root = puntatore;
-                puntatore->padre=NULL;
+                if(puntatore!=NULL) {
+                    puntatore->padre = NULL;
+                }
             }
             free(nodo);
         }
@@ -485,7 +499,7 @@ StazioneNodo* DeleteStazioneNodo(StazioneNodo** root, int value){
 }
 
 //####################### funziomi per le tappe ######################
-Tappa* CreateTappa(Stazione* staz){
+Tappa* CreateTappa(StazioneNodo* staz){
     Tappa* newTappa = (Tappa*)malloc(sizeof (Tappa));
     newTappa->precedente=NULL;
     newTappa->stazione=staz;
@@ -496,7 +510,7 @@ Tappa* CreateTappa(Stazione* staz){
 //##################### funzioni per cercare il percorso migliore ############################
 
 //funzione che trova gli arrivi partendo da una posizione
-Tappa** CercaArrivi(Tappa* partenza, int arrivo, Stazione* raggiunta, bool* trovato, int* size){
+Tappa** CercaArrivi(Tappa* partenza, int arrivo, StazioneNodo* raggiunta, bool* trovato, int* size){
     int distanza = arrivo-partenza->stazione->kilometro;
     int autonomia =  FindMaxMacchina(partenza->stazione->rootMacchine);
     Tappa** arrivi = NULL;
@@ -507,7 +521,7 @@ Tappa** CercaArrivi(Tappa* partenza, int arrivo, Stazione* raggiunta, bool* trov
         return arrivi;
     }else{
         //altrimenti mi salvo le tappe dove sono arrivato;
-        Stazione * corr = raggiunta->next;
+        StazioneNodo * corr = raggiunta->next;
         while(corr->kilometro - partenza->stazione->kilometro <= autonomia){
             lunghezzaArrivi++;
             Tappa* newTappa = CreateTappa(corr);
@@ -522,7 +536,7 @@ Tappa** CercaArrivi(Tappa* partenza, int arrivo, Stazione* raggiunta, bool* trov
 }
 
 //funzione che trova gli arrivi a ritroso partendo da una posizione
-Tappa** CercaArriviRitroso(Tappa* partenza, int arrivo, Stazione* raggiunta, bool* trovato, int* size){
+Tappa** CercaArriviRitroso(Tappa* partenza, int arrivo, StazioneNodo* raggiunta, bool* trovato, int* size){
     int distanza = (partenza->stazione->kilometro)-arrivo;
     int autonomia =  FindMaxMacchina(partenza->stazione->rootMacchine);
     Tappa** arrivi = NULL;
@@ -533,7 +547,7 @@ Tappa** CercaArriviRitroso(Tappa* partenza, int arrivo, Stazione* raggiunta, boo
         return arrivi;
     }else{
         //altrimenti mi salvo le tappe dove sono arrivato;
-        Stazione * corr = raggiunta->precedente;
+        StazioneNodo * corr = raggiunta->precedente;
         while(((partenza->stazione->kilometro) - (corr->kilometro)) <= autonomia){
             lunghezzaArrivi++;
             Tappa* newTappa = CreateTappa(corr);
@@ -570,18 +584,15 @@ char* ScriviPercorso(Tappa* fine,int arrivo ,int profondita){
 }
 
 //funzione che calcola il percorso
-char* CalcolaPercorso(Stazione* autostrada, int start, int end){
+char* CalcolaPercorso(StazioneNodo* autostrada, int start, int end){
     bool trovato = false;
-    Stazione* partenza = autostrada;
-    while(partenza->kilometro!=start){
-        partenza=partenza->next;
-    }
+    StazioneNodo* partenza = CercaStazione(autostrada, start);
     Tappa* rootTappa = CreateTappa(partenza);
     Tappa** arrivi =(Tappa**) malloc(sizeof (Tappa*));
     Tappa* conclusione=NULL;
     arrivi[0]=rootTappa;
     int lunghezzaArrivi = 1;
-    Stazione* raggiunta = partenza;
+    StazioneNodo* raggiunta = partenza;
     int profondita = 0;
     while(!trovato){
         Tappa** newArrivi = (Tappa**) malloc(0);
@@ -621,18 +632,15 @@ char* CalcolaPercorso(Stazione* autostrada, int start, int end){
 
 //funzione per calcolare il percorso a ritroso
 
-char* CalcolaPercorsoRitroso(Stazione* autostrada, int start, int end){
+char* CalcolaPercorsoRitroso(StazioneNodo* autostrada, int start, int end){
     bool trovato = false;
-    Stazione* partenza = autostrada;
-    while(partenza->kilometro!=start){
-        partenza=partenza->next;
-    }
+    StazioneNodo* partenza = CercaStazione(autostrada,start);
     Tappa* rootTappa = CreateTappa(partenza);
     Tappa** arrivi =(Tappa**) malloc(sizeof (Tappa*));
     Tappa* conclusione=NULL;
     arrivi[0]=rootTappa;
     int lunghezzaArrivi = 1;
-    Stazione* raggiunta = partenza;
+    StazioneNodo* raggiunta = partenza;
     int profondita = 0;
     while(!trovato){
         Tappa** newArrivi = (Tappa**) malloc(0);
@@ -675,7 +683,7 @@ char* CalcolaPercorsoRitroso(Stazione* autostrada, int start, int end){
  ########################################################################*/
 
 int main() {
-    Stazione* autostrada = NULL;
+    StazioneNodo* autostrada = NULL;
     char letto[20];
     int numero;
     int scan=1;
@@ -689,7 +697,7 @@ int main() {
                 if(letto[9]=='s'){
                     //caso di aggiungi-stazione
                     scan=scanf( "%i", &numero);
-                    Stazione* stazione = InsertStazione(&autostrada, numero);
+                    StazioneNodo* stazione = InsertStazioneNodo(&autostrada, numero);
                     if(stazione!=NULL) {
                         scan = scanf( "%i", &numero);
                         int aut;
@@ -703,10 +711,7 @@ int main() {
                     scan = scanf( "%i", &numero);
                     int autonomia;
                     scan = scanf( "%i", &autonomia);
-                    Stazione* stazione = autostrada;
-                    while(stazione!=NULL && stazione->kilometro != numero){
-                        stazione = stazione->next;
-                    }
+                    StazioneNodo* stazione = CercaStazione(autostrada, numero);
                     if(stazione!=NULL) {
                         InsertNodeMacchina(&stazione->rootMacchine, autonomia);
                         printf("aggiunta\n");
@@ -719,7 +724,7 @@ int main() {
             case 'd':
                 //caso demolisci-stazione
                 scan = scanf( "%i", &numero);
-                DeleteStazione(&autostrada, numero);
+                DeleteStazioneNodo(&autostrada, numero);
                 break;
 
             case 'r':
@@ -727,10 +732,7 @@ int main() {
                 scan=scanf( "%i", &numero);
                 int autonomia;
                 scan=scanf( "%i", &autonomia);
-                Stazione* stazione = autostrada;
-                while(stazione!=NULL && stazione->kilometro != numero){
-                    stazione = stazione->next;
-                }
+                StazioneNodo * stazione = CercaStazione(autostrada, numero);
                 if(stazione!=NULL) {
                     DeleteNodeMacchina(&stazione->rootMacchine, autonomia);
                 }
