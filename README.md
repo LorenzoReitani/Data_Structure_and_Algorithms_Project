@@ -8,7 +8,7 @@ The project aims to plan the shortest route with the fewest stops between two gi
 
 ## Implementation 
 
-The solution is implemented as a variation of Dijkstra Shortest Path algorithm. In addition the main data structures used are BSTs, queues, variation of Max-Heaps.
+The solution structures the problem as a layered search over a dynamically maintained highway model, using two key data abstractions: a sorted doubly linked list of service stations and, inside each station, a BST that stores available vehicles by autonomy. The smart idea is to exploit the maximum available autonomy at each station to prune the search space aggressively: instead of exploring arbitrary sequences of stops, the algorithm expands only the stations reachable with the local maximum range, generating a tree of “tappe” (stages) and stopping as soon as the destination becomes reachable. This effectively performs a breadth-first expansion constrained by vehicle autonomy, guaranteeing the minimum number of stops and naturally favoring routes closer to the start due to the ordered structure of the station list. An additional enhancement is the dual-direction support: the algorithm automatically switches between forward and backward search depending on start/end ordering, reusing the same logic with minimal duplication. The combination of ordered station traversal, BST-based autonomy lookup, and incremental pruning yields an efficient and elegant solution to the shortest-route-with-fewest-stops problem.
 
 ## Grade 🏆
 
