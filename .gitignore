@@ -1,0 +1,7 @@
+/.idea/
+/cmake-build-debug/
+/cmake-build-docker/
+CMakeLists.txt
+amore.txt
+output.txt
+main
