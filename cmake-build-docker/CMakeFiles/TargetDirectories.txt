@@ -1,3 +1,0 @@
-/tmp/API/cmake-build-docker/CMakeFiles/rebuild_cache.dir
-/tmp/API/cmake-build-docker/CMakeFiles/edit_cache.dir
-/tmp/API/cmake-build-docker/CMakeFiles/API.dir
